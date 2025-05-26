@@ -67,12 +67,12 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/gauri17-pro/nextflix.git'
+                git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/sathish103/Netflixapp.git'
             }
         }
         stage("Sonarqube Analysis") {
             steps {
-                withSonarQubeEnv('sonar-server') {
+                withSonarQubeEnv('sonar-scanner') {
                     sh '''$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
                     -Dsonar.projectKey=Netflix'''
                 }
@@ -98,7 +98,7 @@ pipeline {
         stage("Docker Build Image"){
             steps{
                    
-                sh "docker build --build-arg API_KEY=2af0904de8242d48e8527eeedc3e19d9 -t netflix ."
+                sh "docker build --build-arg API_KEY=e9277f6b402c670a3a0809250b872939 -t netflix ."
             }
         }
         stage("TRIVY"){
@@ -112,8 +112,8 @@ pipeline {
         stage("Docker Push"){
             steps{
                 script {
-                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker'){   
-                    sh "docker tag netflix sathish103/netflix:latest"
+                    withDockerRegistry(credentialsId: 'docker-creds', toolName: 'docker'){   
+                    sh "docker tag netflix sathish103/netflix:latest "
                     sh "docker push sathish103/netflix:latest"
                     }
                 }
@@ -135,40 +135,49 @@ In order to access the cluster use the command below:
 aws eks update-kubeconfig --name "Cluster-Name" --region "Region-of-operation"
 ```
 
-1. We need to add the Helm Stable Charts for your local.
 
-```bash
-helm repo add stable https://charts.helm.sh/stable
-```
-
-2. Add prometheus Helm repo
+1. Add prometheus Helm repo
 
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 ```
 
-3. Create Prometheus namespace
+2. Create Prometheus namespace
 
 ```bash
 kubectl create namespace prometheus
 ```
 
-4. Install kube-prometheus stack
+3. Install kube-prometheus stack
 
 ```bash
-helm install stable prometheus-community/kube-prometheus-stack -n prometheus
-```
-
-5. Edit the service and make it LoadBalancer
+helm install prometheus prometheus-community/kube-prometheus-stack -n prometheus \
+  --set prometheus.prometheusSpec.maximumStartupDurationSeconds=120
 
 ```
-kubectl edit svc stable-kube-prometheus-sta-prometheus -n prometheus
-```
 
-6. Edit the grafana service too to change it to LoadBalancer
+4. Edit the prometheus service and make it LoadBalancer
 
 ```
-kubectl edit svc stable-grafana -n prometheus
+kubectl edit svc prometheus-kube-prometheus-prometheus -n prometheus
+    OR
+kubectl patch svc prometheus-kube-prometheus-prometheus -n prometheus -p '{"spec": {"type": "LoadBalancer"}}'
+
+```
+
+5. Edit the grafana service too to change it to LoadBalancer
+
+```
+kubectl edit svc prometheus-grafana -n prometheus
+    OR
+kubectl patch svc prometheus-grafana -n prometheus -p '{"spec": {"type": "LoadBalancer"}}'
+
+```
+6. Run this command to get grafana login password (Username-default: admin)
+
+```
+kubectl get secret --namespace prometheus prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+
 ```
 
 ## Step 9: Deploy ArgoCD on EKS to fetch the manifest files to the cluster
@@ -199,6 +208,10 @@ kubectl get svc argocd-server -n argocd -o json
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
+
+
+
+
 
 
 
