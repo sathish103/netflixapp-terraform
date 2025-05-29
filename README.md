@@ -210,6 +210,9 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 ```
 
 
+## Step 10: Configure the Cert-Manager for TLS certificates for (application access)
+
+
 1. Install cert-manager
 
 ```
