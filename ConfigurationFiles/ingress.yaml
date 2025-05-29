@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: netflix-app-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "netflix-app.devopscicd.xyz"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: netflix-app
+                port:
+                  number: 80
