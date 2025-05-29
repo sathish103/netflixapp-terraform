@@ -210,6 +210,51 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 ```
 
 
+1. Install cert-manager
+
+```
+kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+
+```
+kubectl get pods -n cert-manager
+
+```
+2. Create ClusterIssuer for Let's Encrypt
+
+```
+# vi cluster-issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: your-email@example.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+
+```
+kubectl apply -f cluster-issuer.yaml
+
+```
+
+3. Cleanup Cert-Manager
+
+```
+kubectl delete -f cluster-issuer.yaml
+
+kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+
+```
+
+
+
+
 
 
 
