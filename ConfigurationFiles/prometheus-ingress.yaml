@@ -1,10 +1,18 @@
+# ---> This is for with TLS certicates Cert-Manager configuration <---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: netflix-prometheus-ingress
   namespace: prometheus
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - "netflix-prometheus.devopscicd.xyz"
+      secretName: netflix-prometheus-tls # cert-manager will create this secret automatically
   rules:
     - host: "netflix-prometheus.devopscicd.xyz"
       http:
@@ -16,3 +24,23 @@ spec:
                 name: prometheus-kube-prometheus-prometheus
                 port:
                   number: 9090
+
+# ---> This is for without TLS certicates configuration <---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: netflix-prometheus-ingress
+#   namespace: prometheus
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - host: "netflix-prometheus.devopscicd.xyz"
+#       http:
+#         paths:
+#           - pathType: Prefix
+#             path: "/"
+#             backend:
+#               service:
+#                 name: prometheus-kube-prometheus-prometheus
+#                 port:
+#                   number: 9090
