@@ -158,7 +158,7 @@ helm install prometheus prometheus-community/kube-prometheus-stack -n prometheus
 
 4. Edit the prometheus service and make it LoadBalancer
 
-```
+```bash
 kubectl edit svc prometheus-kube-prometheus-prometheus -n prometheus
     OR
 kubectl patch svc prometheus-kube-prometheus-prometheus -n prometheus -p '{"spec": {"type": "LoadBalancer"}}'
@@ -167,7 +167,7 @@ kubectl patch svc prometheus-kube-prometheus-prometheus -n prometheus -p '{"spec
 
 5. Edit the grafana service too to change it to LoadBalancer
 
-```
+```bash
 kubectl edit svc prometheus-grafana -n prometheus
     OR
 kubectl patch svc prometheus-grafana -n prometheus -p '{"spec": {"type": "LoadBalancer"}}'
@@ -175,7 +175,7 @@ kubectl patch svc prometheus-grafana -n prometheus -p '{"spec": {"type": "LoadBa
 ```
 6. Run this command to get grafana login password (Username-default: admin)
 
-```
+```bash
 kubectl get secret --namespace prometheus prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
 
 ```
@@ -183,29 +183,29 @@ kubectl get secret --namespace prometheus prometheus-grafana -o jsonpath="{.data
 ## Step 9: Deploy ArgoCD on EKS to fetch the manifest files to the cluster
 
 1. Create a namespace argocd
-```
+```bash
 kubectl create namespace argocd
 ```
 
 2. Add argocd repo locally
-```
+```bash
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.4.7/manifests/install.yaml
 ```
 
 3. By default, argocd-server is not publically exposed. In this scenario, we will use a Load Balancer to make it usable:
-```
+```bash
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 ```
 
 4. We get the load balancer hostname using the command below:
-```
+```bash
 kubectl get svc argocd-server -n argocd -o json
 ```
 
 5. Once you get the load balancer hostname details, you can access the ArgoCD dashboard through it.
 
 6. We need to enter the Username and Password for ArgoCD. The username will be admin by default. For the password, we need to run the command below:
-```
+```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
@@ -215,17 +215,16 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 1. Install cert-manager
 
-```
+```bash
 kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
 
-```
 kubectl get pods -n cert-manager
-
 ```
+
 2. Create ClusterIssuer for Let's Encrypt
 # vi cluster-issuer.yaml
 
-```
+```bash
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -241,15 +240,14 @@ spec:
         ingress:
           class: nginx
 ```
-
-```
+```bash
 kubectl apply -f cluster-issuer.yaml
 
 ```
 
 3. Cleanup Cert-Manager
 
-```
+```bash
 kubectl delete -f cluster-issuer.yaml
 
 kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
@@ -261,37 +259,37 @@ kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/d
 
 1. Create and navigate to a folder for your cert files
 
-```
+```bash
 mkdir -p ~/netflix-tls && cd ~/netflix-tls
 
 ```
 2. Generate a private key
 
-```
+```bash
 openssl genrsa -out netflix-app.key 2048
 ```
 3. Create a CSR with your specific domain as CN
 
-```
+```bash
 openssl req -new -key netflix-app.key -out netflix-app.csr -subj "/CN=nexflix-app.devopscicd.xyz"
 
 ```
 
 4. Generate a self-signed certificate valid for 1 year (365 days)
 
-```
+```bash
 openssl x509 -req -in netflix-app.csr -signkey netflix-app.key -out netflix-app.crt -days 365
 ```
 
 5. (optional): Verify certificate details
 
-```
+```bash
 openssl x509 -in netflix-app.crt -text -noout
 ```
 
 6. Create Kubernetes TLS secret in netflix-app namespace
 
-```
+```bash
 kubectl create secret tls netflix-app-tls --cert=netflix-app.crt --key=netflix-app.key -n netflix-app
 ```
 
