@@ -1,17 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: netflix-app-ingress
+  name: netflix-grafana-ingress
+  namespace: prometheus
 spec:
   ingressClassName: nginx
   rules:
-    - host: "netflix-app.devopscicd.xyz"
+    - host: "netflix-grafana.devopscicd.xyz"
       http:
         paths:
           - pathType: Prefix
             path: "/"
             backend:
               service:
-                name: netflix-app
+                name: prometheus-grafana
                 port:
                   number: 80

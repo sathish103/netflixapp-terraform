@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: netflix-prometheus-ingress
+  namespace: prometheus
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "netflix-prometheus.devopscicd.xyz"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: prometheus-kube-prometheus-prometheus
+                port:
+                  number: 80
