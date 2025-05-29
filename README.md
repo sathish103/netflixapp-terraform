@@ -223,9 +223,9 @@ kubectl get pods -n cert-manager
 
 ```
 2. Create ClusterIssuer for Let's Encrypt
+# vi cluster-issuer.yaml
 
 ```
-# vi cluster-issuer.yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -240,6 +240,7 @@ spec:
     - http01:
         ingress:
           class: nginx
+```
 
 ```
 kubectl apply -f cluster-issuer.yaml
