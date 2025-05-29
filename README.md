@@ -256,8 +256,45 @@ kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/d
 ```
 
 
+## Step 11: Configure the openssl for TLS certificates for (application access)
 
+1. Create and navigate to a folder for your cert files
 
+```
+mkdir -p ~/netflix-tls && cd ~/netflix-tls
+
+```
+2. Generate a private key
+
+```
+openssl genrsa -out netflix-app.key 2048
+```
+3. Create a CSR with your specific domain as CN
+
+```
+openssl req -new -key netflix-app.key -out netflix-app.csr -subj "/CN=nexflix-app.devopscicd.xyz"
+
+```
+
+4. Generate a self-signed certificate valid for 1 year (365 days)
+
+```
+openssl x509 -req -in netflix-app.csr -signkey netflix-app.key -out netflix-app.crt -days 365
+```
+
+5. (optional): Verify certificate details
+
+```
+openssl x509 -in netflix-app.crt -text -noout
+```
+
+6. Create Kubernetes TLS secret in netflix-app namespace
+
+```
+kubectl create secret tls netflix-app-tls --cert=netflix-app.crt --key=netflix-app.key -n netflix-app
+```
+
+7. Add this tls secret into ingress yaml file along with your HOST domain
 
 
 
